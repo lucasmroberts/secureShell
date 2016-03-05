@@ -45,7 +45,7 @@ if (typeof lib != 'undefined')
   throw new Error('Global "lib" object already exists.');
 
 var lib = {};
-
+var selectedUrl = "";
 /**
  * Map of "dependency" to ["source", ...].
  *
@@ -9598,7 +9598,7 @@ hterm.Terminal = function(opt_profileId) {
   // True if mouse-click-drag should scroll the terminal.
   this.enableMouseDragScroll = true;
 
-  this.copyOnSelect = null;
+  this.copyOnSelect = false;
   this.mousePasteButton = null;
 
   // Whether to use the default window copy behaviour.
@@ -12247,7 +12247,11 @@ hterm.Terminal.prototype.onMouse_ = function(e) {
     }
   }
 
-  if (e.type == 'mousedown') {
+  if (e.type == 'mousedown' && e.which !=3) {
+    if (document.getElementById('test').style.display != 'none') {
+	document.getElementById('test').style.display = 'none';
+    }
+
     if (e.altKey || this.vt.mouseReport == this.vt.MOUSE_REPORT_DISABLED) {
       // If VT mouse reporting is disabled, or has been defeated with
       // alt-mousedown, then the mouse will act on the local selection.
@@ -12265,15 +12269,46 @@ hterm.Terminal.prototype.onMouse_ = function(e) {
   if (!this.reportMouseEvents_) {
     if (e.type == 'dblclick') {
       this.screen_.expandSelection(this.document_.getSelection());
-      hterm.copySelectionToClipboard(this.document_);
+      //hterm.copySelectionToClipboard(this.document_);
     }
 
-    if (e.type == 'mousedown' && e.which == this.mousePasteButton)
-      this.paste();
+    if (e.type == 'mousedown' && e.which == this.mousePasteButton) {
+      //this.paste();
+    }
+
+    if (e.type == 'mouseup' && e.which == 3) {
+	if (document.getElementById("test").style.display=="none") {
+		var selected = '';
+		for (var i = 0; i < e.path.length - 1; i++) {
+		    if (e.path[i].tagName === 'X-ROW') {
+		        selected = e.path[i];
+                    }
+		}
+
+		document.getElementById("openBrowser").style.display="none";
+		if (selected.innerText.includes('http')) {
+		    document.getElementById("openBrowser").style.display="";
+		    var re = /(https?:\/\/[^\s]+)/g;
+		    var urls = selected.innerText.match(re);
+		    for (var i=0; i<urls.length; i++) {
+			var start = selected.innerText.indexOf(urls[i]);
+			var end = start + urls[i].length;
+			if (e.terminalColumn >= start && e.terminalColumn <=end) {
+				selectedUrl = urls[i]
+			}
+		    }
+		}		
+
+		document.getElementById("test").style.display="";
+        	document.getElementById("test").style.left = e.clientX + 'px';
+        	document.getElementById("test").style.top = e.clientY + 'px';
+	}
+	else { document.getElementById("test").style.display="none"; }
+    }
 
     if (e.type == 'mouseup' && e.which == 1 && this.copyOnSelect &&
         !this.document_.getSelection().isCollapsed) {
-      hterm.copySelectionToClipboard(this.document_);
+        //hterm.copySelectionToClipboard(this.document_);
     }
 
     if ((e.type == 'mousemove' || e.type == 'mouseup') &&
@@ -16429,3 +16464,28 @@ lib.fs.getOrCreateDirectory = function(root, path, onSuccess, opt_onError) {
   getOrCreateNextName(root);
 };
 
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById("pasteButton").addEventListener("click", function() {
+        term_.paste();
+        document.getElementById("test").style.display='none';
+    });
+
+    document.getElementById("copyButton").addEventListener("click", function() {
+        hterm.copySelectionToClipboard(term_.document_);
+        document.getElementById("test").style.display='none';
+   });
+
+   document.getElementById("openBrowser").addEventListener("click", function() {
+	window.open(selectedUrl, '_blank');
+	document.getElementById("test").style.display='none';
+   });
+
+   document.oncontextmenu = function() {
+	return false;
+   }
+   /*
+   document.getElementById("test").addEventListener("mouseleave", function() {
+        document.getElementById("test").style.display='none';
+   });
+   */
+});

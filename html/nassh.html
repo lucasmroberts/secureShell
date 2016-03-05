@@ -34,15 +34,43 @@
       }
 
       #terminal {
-        display: block;
+	display: block;
         position: relative;
         width: 100%;
         height: 100%;
+      }
+ 
+      .rightClickMenu {
+		overflow: hidden;
+		border: 1px solid #CCC;
+		white-space: nowrap;
+		font-family: sans-serif;
+		background: #FFF;
+		color: #333;
+		border-radius: 5px;
+		padding: 0;
+      }
+
+      .rightClickMenu li {
+		padding: 8px 12px;
+		cursor: pointer;
+		list-style-type: none;
+      }
+
+      .rightClickMenu li:hover {
+		background-color: #DEF;
       }
     </style>
   </head>
   <body>
     <div id='terminal'></div>
+    <div id="test" style="display:none; z-index:100000; position:absolute; top:5px;right:20px;width:100px;">
+        <ul class='rightClickMenu'>
+	  <li id='openBrowser' style='display:none;' id='openBrowserButton'>Open Link</li>
+          <li id='copyButton'>Copy</li>
+          <li id='pasteButton'>Paste</li>
+        </ul>
+    </div>
     <div id='update-notification' style='display:none'>&#x21E7;</div>
   </body>
 </html>
